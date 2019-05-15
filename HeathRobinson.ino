@@ -4,15 +4,18 @@
 #include <EEPROM.h>
 #include <Servo.h>
 
-SoftwareSerial mySerial(0,1); // RX, TX
-int inhibit_pin = 13;
+#define INHIBIT_PIN 13
+#define EEPROM_RST_PIN 7
+#define SERVO_PIN 6
+#define SOFT_SER_RX 0
+#define SOFT_SER_TX 1
 
+#define SERVO_CLOSED 90
+#define SERVO_OPEN 180
+
+
+SoftwareSerial mySerial(SOFT_SER_RX, SOFT_SER_TX);
 Servo servo;
-int servoPin = 6;
-int servo_closed = 90;
-int servo_open = 180;
-
-int EE_rst = 7;      //EEPROM reset pin
 
 int C_addr = 0; //EEprom counter address
 int T_addr = 1; //EEprom total address
@@ -57,15 +60,15 @@ void setup() {
   mySerial.begin(4800);
   
   // Turn inhibit off
-  digitalWrite(inhibit_pin, LOW);
+  digitalWrite(INHIBIT_PIN, LOW);
 
   // Attach servo to servo pin and set to 0 degrees
-  servo.attach(servoPin);
-  servo.write(servo_closed);
+  servo.attach(SERVO_PIN);
+  servo.write(SERVO_CLOSED);
 
   pinMode(13, OUTPUT);
   
-  pinMode(EE_rst, INPUT);
+  pinMode(EEPROM_RST_PIN, INPUT);
   
   if(DEBUG == true) {
     Display_total();    
@@ -75,8 +78,6 @@ void setup() {
 }
 
 void loop() {
-
-  
   // any input coming from coin acceptor?
   if (mySerial.available()) {
 
@@ -104,11 +105,11 @@ void loop() {
     if(tempCount > minSpend){
             
       // Inhibit coin sorter
-      digitalWrite(inhibit_pin, HIGH);
+      digitalWrite(INHIBIT_PIN, HIGH);
           
       //Open servo
       delay(1000);
-      servo.write(servo_open);
+      servo.write(SERVO_OPEN);
       digitalWrite(13,HIGH);
       Serial.println("Servo open");
   
@@ -118,12 +119,12 @@ void loop() {
   
       //Clear LCD and close servo
       lcd.clear();
-      servo.write(servo_closed);
+      servo.write(SERVO_CLOSED);
       digitalWrite(13,LOW);
       Serial.println("Servo closed");
   
       // Re open coin sorter
-      digitalWrite(inhibit_pin, LOW);
+      digitalWrite(INHIBIT_PIN, LOW);
   
       if(DEBUG == true) {
         Display_total();      
@@ -131,7 +132,7 @@ void loop() {
     }
   }
   
-  if(digitalRead(EE_rst) == true) {
+  if(digitalRead(EEPROM_RST_PIN) == true) {
     EEPROM.write(C_addr,0);
     EEPROM.write(T_addr,0);
     counter = 0;
