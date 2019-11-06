@@ -22,16 +22,16 @@
 #define MIN_SPEND 50
 
 // EEPROM addresses
-#define TOTAL_ADDR 1
+#define TOTAL_POUND_ADDR 1
+#define TOTAL_PENCE_ADDR 2
 
 // Initialise vars
 LiquidCrystal_I2C lcd(0x27, 20, 4); // set the LCD address to 0x27 for a 16 chars and 2 line display
 Servo servo;
 
 float i;
-//float totalPence = EEPROM.read(TOTAL_ADDR);
-int totalPence = 0;
-float tempCount = 0.0;
+int totalPence = EEPROM.read(TOTAL_POUND_ADDR) * 100;
+int tempCount = 0;
 volatile float pulses = 0;
 volatile bool resetFlag = false;
 unsigned long timeOfLastPulse = 0;
@@ -60,6 +60,7 @@ int penceLookup[MAX_PULSES] = {
 
 void setup()
 {
+  totalPence += EEPROM.read(TOTAL_PENCE_ADDR);
   // Open serial communications and wait for port to open:
   Serial.begin(9600);
   Serial.println("Coin Acceptor Ready!");
@@ -83,6 +84,7 @@ void setup()
   attachInterrupt(digitalPinToInterrupt(COIN_COUNTER_PULSE), pulseRegistered, FALLING);
 
   displayTotal();
+  resetFlag = false;
 }
 
 void loop()
@@ -95,6 +97,7 @@ void loop()
   // If we broke the loop because of a reset, do the reset.
   // Else, it was because of a coin, so process that.
   if(resetFlag == true){
+    Serial.println(resetFlag);
     reset();
   }
   else {
@@ -110,7 +113,8 @@ void loop()
     totalPence += pence;
     tempCount += pence;
   
-    EEPROM.write(TOTAL_ADDR, totalPence);
+    EEPROM.write(TOTAL_POUND_ADDR, totalPence / 100);
+    EEPROM.write(TOTAL_PENCE_ADDR, totalPence % 100);
   
     Serial.print("Amount inserted: ");
     Serial.println(poundsFromPence(totalPence));
@@ -180,7 +184,8 @@ void resetISR()
 
 void reset()
 {
-  //EEPROM.write(TOTAL_ADDR, 0);
+  EEPROM.write(TOTAL_POUND_ADDR, 0);
+  EEPROM.write(TOTAL_PENCE_ADDR, 0);
   totalPence = 0;
 
   Serial.println("Resetting");
