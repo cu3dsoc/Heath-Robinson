@@ -60,7 +60,9 @@ int penceLookup[MAX_PULSES] = {
 
 void setup()
 {
-  totalPence += EEPROM.read(TOTAL_PENCE_ADDR);
+  tempCount = EEPROM.read(TOTAL_PENCE_ADDR);
+  totalPence += tempCount;
+
   // Open serial communications and wait for port to open:
   Serial.begin(9600);
   Serial.println("Coin Acceptor Ready!");
