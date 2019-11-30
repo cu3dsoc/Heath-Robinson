@@ -9,7 +9,7 @@
 #define SERVO_PIN 6
 
 #define SERVO_CLOSED 90
-#define SERVO_OPEN 180
+#define SERVO_OPEN 60
 
 #define MAX_PULSES 6
 // Milliseconds to wait for pulses before stopping counting
